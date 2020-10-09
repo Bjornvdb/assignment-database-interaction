@@ -1,4 +1,7 @@
-use Mix.Config
+import Config
+
+config :database_interaction,
+  ecto_repos: [DatabaseInteraction.Repo]
 
 config :database_interaction, DatabaseInteraction.Repo,
   database: "assignmnent_crypto",
