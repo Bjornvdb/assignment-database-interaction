@@ -9,7 +9,6 @@ defmodule DatabaseInteraction.Application do
     children = [
       # Starts a worker by calling: DatabaseInteraction.Worker.start_link(arg)
       # {DatabaseInteraction.Worker, arg}
-      DatabaseInteraction.Repo
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
