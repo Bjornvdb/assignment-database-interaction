@@ -113,4 +113,55 @@ iex> DatabaseInteraction.CurrencyPairContext.get_pair_by_name "BTC_USDC"
 }
 ```
 
+### Currency pair **chunk** operations
+
+An overview of the sample data (everything at midnight unless otherwise specified):
+
+```text
+######### #########    ######### #########    ######### #########
+# 01/06 # # 03/06 #    # 05/06 # # 06/06 #    # 08/06 # # 10/06 #
+######### #########    ######### #########    ######### #########
+|  PRESENT IN DB  |    |  PRESENT IN DB  |    |  PRESENT IN DB  |
+-----------------------------------------------------------------
+
+As you can see, the data between 03/06 => 05/06 and 06/06 => 08/06 is missing.
+
+Overview of the unix timestamps:
+# 1590969600 => 01/06
+# 1591056000 => 02/06
+# 1591142400 => 03/06
+# 1591228800 => 04/06
+# 1591315200 => 05/06
+# 1591401600 => 06/06
+# 1591488000 => 07/06
+# 1591574400 => 08/06
+# 1591660800 => 09/06
+# 1591747200 => 10/06
+```
+
+```elixir
+# Functions to make these chunks directly (this is a manual debug function! Don't use this directly):
+
+# chunk that'll contain 1 June - 3 June
+chunk_1 = %{from: DateTime.from_unix!(1590969600) , until: DateTime.from_unix!(1591142400)}
+
+# chunk that'll contain 5 June - 6 June
+chunk_2 = %{from: DateTime.from_unix!(1591315200), until: DateTime.from_unix!(1591401600)}
+
+# chunk that'll contain 8 June - 10 June
+chunk_3 = %{from: DateTime.from_unix!(1591574400), until: DateTime.from_unix!(1591747200)}
+
+{:ok, _c1} = DatabaseInteraction.CurrencyPairChunkContext.create_chunk(chunk_1, result, :i_am_aware_that_i_should_not_use_this_directly)
+{:ok, _c2} = DatabaseInteraction.CurrencyPairChunkContext.create_chunk(chunk_2, result, :i_am_aware_that_i_should_not_use_this_directly)
+{:ok, _c3} = DatabaseInteraction.CurrencyPairChunkContext.create_chunk(chunk_3, result, :i_am_aware_that_i_should_not_use_this_directly)
+
+# You can assume in the following sections that this data is present.
+```
+
+#### Generate missing chunks
+
+
+```elixir
+
+```
 TODO...

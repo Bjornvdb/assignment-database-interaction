@@ -22,28 +22,29 @@ defmodule DatabaseInteraction.CurrencyPairChunkContext do
     DatabaseInteraction.Repo.get_repo().delete(cpc)
   end
 
-  def select_chunks(%DateTime{} = from, %DateTime{} = until) do
+  def select_chunks(%DateTime{} = from, %DateTime{} = until, %CurrencyPair{} = cp) do
     DateTime.to_unix(until) > DateTime.to_unix(from) || raise "Until should be bigger than from."
 
     from(r in CurrencyPairChunk,
       where:
-        ((r.from < ^from and r.until >= ^from) or r.from >= ^from) and
+        r.currency_pair_id == ^cp.id and
+          ((r.from < ^from and r.until >= ^from) or r.from >= ^from) and
           ((r.until > ^until and r.from <= ^until) or r.until <= ^until),
       order_by: r.from
     )
     |> DatabaseInteraction.Repo.get_repo().all()
   end
 
-  def generate_missing_chunks(%DateTime{} = from, %DateTime{} = until) do
+  def generate_missing_chunks(%DateTime{} = from, %DateTime{} = until, %CurrencyPair{} = cp) do
     DateTime.to_unix(until) > DateTime.to_unix(from) || raise "Until should be bigger than from."
     metainfo = %{start: from, end: until, tasks: [], point_in_time: from}
 
-    select_chunks(from, until)
+    select_chunks(from, until, cp)
     |> Enum.concat([:finalize])
     |> Enum.reduce(metainfo, fn
       :finalize, metainfo ->
         # End is exclusive the last second
-        case metainfo.point_in_time <= DateTime.add(metainfo.end, -1, :second) do
+        case DateTime.to_unix(metainfo.point_in_time) <= DateTime.to_unix(metainfo.end) - 1 do
           true ->
             new_task = {metainfo.point_in_time, DateTime.add(metainfo.end, -1, :second)}
             %{metainfo | tasks: [new_task | metainfo.tasks]}
@@ -53,15 +54,18 @@ defmodule DatabaseInteraction.CurrencyPairChunkContext do
         end
 
       %{from: c_f, until: c_u}, metainfo ->
+        pit_unix = DateTime.to_unix(metainfo.point_in_time)
+        c_f_unix = DateTime.to_unix(c_f)
+
         cond do
-          metainfo.point_in_time >= metainfo.end ->
+          pit_unix >= metainfo.end ->
             metainfo
 
           # skip and start looking from current chunk its until
-          c_f <= metainfo.point_in_time ->
+          c_f_unix <= pit_unix ->
             %{metainfo | point_in_time: DateTime.add(c_u, 1, :second)}
 
-          c_f > metainfo.point_in_time ->
+          c_f_unix > pit_unix ->
             new_task = {metainfo.point_in_time, DateTime.add(c_f, -1, :second)}
             new_pit = DateTime.add(c_u, 1, :second)
             %{metainfo | point_in_time: new_pit, tasks: [new_task | metainfo.tasks]}
@@ -73,34 +77,6 @@ defmodule DatabaseInteraction.CurrencyPairChunkContext do
 end
 
 # Below code was just for debugging. Run this from your own project that uses this as a dependency
-
-# # Create pair
-
-# {:ok, result} = DatabaseInteraction.CurrencyPairContext.create_currency_pair(%{currency_pair: "BTC_USDT"})
-
-# # 1590969600 => 01/06
-# # 1591056000 => 02/06
-# # 1591142400 => 03/06
-# # 1591228800 => 04/06
-# # 1591315200 => 05/06
-# # 1591401600 => 06/06
-# # 1591488000 => 07/06
-# # 1591574400 => 08/06
-# # 1591660800 => 09/06
-# # 1591747200 => 10/06
-
-# # chunk that'll contain 1 June - 3 June
-# chunk_1 = %{from: DateTime.from_unix!(1590969600) , until: DateTime.from_unix!(1591142400)}
-
-# # chunk that'll contain 5 June - 6 June
-# chunk_2 = %{from: DateTime.from_unix!(1591315200), until: DateTime.from_unix!(1591401600)}
-
-# # chunk that'll contain 8 June - 10 June
-# chunk_3 = %{from: DateTime.from_unix!(1591574400), until: DateTime.from_unix!(1591747200)}
-
-# {:ok, _c} = DatabaseInteraction.CurrencyPairChunkContext.create_chunk(chunk_1, result)
-# {:ok, _c} = DatabaseInteraction.CurrencyPairChunkContext.create_chunk(chunk_2, result)
-# {:ok, _c} = DatabaseInteraction.CurrencyPairChunkContext.create_chunk(chunk_3, result)
 
 # alias ClonerDirector.Repo
 # alias DatabaseInteraction.CurrencyPairChunk
