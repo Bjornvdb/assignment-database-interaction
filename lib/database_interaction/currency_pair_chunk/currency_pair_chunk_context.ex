@@ -26,7 +26,8 @@ defmodule DatabaseInteraction.CurrencyPairChunkContext do
     from(r in CurrencyPairChunk,
       where:
         ((r.from < ^from and r.until > ^from) or r.from >= ^from) and
-          ((r.until > ^until and r.from < ^until) or r.until <= ^until)
+          ((r.until > ^until and r.from < ^until) or r.until <= ^until),
+      order_by: r.from
     )
     |> DatabaseInteraction.Repo.get_repo().all()
   end
