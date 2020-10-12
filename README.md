@@ -151,17 +151,45 @@ chunk_2 = %{from: DateTime.from_unix!(1591315200), until: DateTime.from_unix!(15
 # chunk that'll contain 8 June - 10 June
 chunk_3 = %{from: DateTime.from_unix!(1591574400), until: DateTime.from_unix!(1591747200)}
 
-{:ok, _c1} = DatabaseInteraction.CurrencyPairChunkContext.create_chunk(chunk_1, result, :i_am_aware_that_i_should_not_use_this_directly)
-{:ok, _c2} = DatabaseInteraction.CurrencyPairChunkContext.create_chunk(chunk_2, result, :i_am_aware_that_i_should_not_use_this_directly)
-{:ok, _c3} = DatabaseInteraction.CurrencyPairChunkContext.create_chunk(chunk_3, result, :i_am_aware_that_i_should_not_use_this_directly)
+{:ok, _c1} = DatabaseInteraction.CurrencyPairChunkContext.create_chunk(chunk_1, pair, :i_am_aware_that_i_should_not_use_this_directly)
+{:ok, _c2} = DatabaseInteraction.CurrencyPairChunkContext.create_chunk(chunk_2, pair, :i_am_aware_that_i_should_not_use_this_directly)
+{:ok, _c3} = DatabaseInteraction.CurrencyPairChunkContext.create_chunk(chunk_3, pair, :i_am_aware_that_i_should_not_use_this_directly)
 
 # You can assume in the following sections that this data is present.
 ```
 
 #### Generate missing chunks
 
+Play a bit around with this function. This function will generate, by default, tuples of timeframes (missing chunks) where the last second is excluded.
+
+E.g. a 5 minute timeframe will become 4 minutes and 59 seconds
 
 ```elixir
-
+iex>pair = DatabaseInteraction.CurrencyPairContext.get_pair_by_name("BTC_USDT")
+...
+iex>from = DateTime.from_unix!(1591747500)
+~U[2020-06-10 00:05:00Z]
+iex>until = DateTime.from_unix!(1591747800)
+~U[2020-06-10 00:10:00Z]
+iex>DatabaseInteraction.CurrencyPairChunkContext.generate_missing_chunks(from, until)
+[{~U[2020-06-10 00:05:00Z], ~U[2020-06-10 00:09:59Z]}]
 ```
+
+Here is an example with chunks that are already present in the database:
+
+```elixir
+iex>pair = DatabaseInteraction.CurrencyPairContext.get_pair_by_name("BTC_USDT")
+...
+iex> from = DateTime.from_unix!(1590969599)
+~U[2020-05-31 23:59:59Z]
+iex> until = DateTime.from_unix!(1591747200)
+~U[2020-06-10 00:00:00Z]
+iex> DatabaseInteraction.CurrencyPairChunkContext.generate_missing_chunks(from, until, pair)
+[
+  {~U[2020-05-31 23:59:59Z], ~U[2020-05-31 23:59:59Z]},
+  {~U[2020-06-03 00:00:01Z], ~U[2020-06-04 23:59:59Z]},
+  {~U[2020-06-06 00:00:01Z], ~U[2020-06-07 23:59:59Z]}
+]
+```
+
 TODO...
