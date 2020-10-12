@@ -22,7 +22,9 @@ defmodule DatabaseInteraction.CurrencyPairChunkContext do
     DatabaseInteraction.Repo.get_repo().delete(cpc)
   end
 
-  def select_chunks(%DateTime{} = from, %DateTime{} = until) when until > from do
+  def select_chunks(%DateTime{} = from, %DateTime{} = until) do
+    DateTime.to_unix(until) > DateTime.to_unix(from) || raise "Until should be bigger than from."
+
     from(r in CurrencyPairChunk,
       where:
         ((r.from < ^from and r.until >= ^from) or r.from >= ^from) and
@@ -32,7 +34,8 @@ defmodule DatabaseInteraction.CurrencyPairChunkContext do
     |> DatabaseInteraction.Repo.get_repo().all()
   end
 
-  def generate_missing_chunks(%DateTime{} = from, %DateTime{} = until) when until > from do
+  def generate_missing_chunks(%DateTime{} = from, %DateTime{} = until) do
+    DateTime.to_unix(until) > DateTime.to_unix(from) || raise "Until should be bigger than from."
     metainfo = %{start: from, end: until, tasks: [], point_in_time: from}
 
     select_chunks(from, until)
