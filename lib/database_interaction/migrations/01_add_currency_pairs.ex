@@ -1,4 +1,4 @@
-defmodule DatabaseInteraction.Repo.Migrations.AddCurrencyPairsTable do
+defmodule DatabaseInteraction.Repo.Migrations.AddCurrencyPairs do
   use Ecto.Migration
 
   def change do

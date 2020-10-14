@@ -1,4 +1,4 @@
-defmodule DatabaseInteraction.Repo.Migrations.AddCurrencyPairChunksTable do
+defmodule DatabaseInteraction.Repo.Migrations.AddCurrencyPairChunks do
   use Ecto.Migration
 
   def change do
