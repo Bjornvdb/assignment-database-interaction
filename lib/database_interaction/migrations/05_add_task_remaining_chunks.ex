@@ -7,6 +7,8 @@ defmodule DatabaseInteraction.Repo.Migrations.AddTaskRemainingChunks do
       add(:until, :utc_datetime, null: false)
       add(:done_or_not, :bool, default: false)
       add(:task_status_id, references(:task_status), null: false)
+
+      timestamps()
     end
 
     create(

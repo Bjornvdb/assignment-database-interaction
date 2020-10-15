@@ -9,6 +9,8 @@ defmodule DatabaseInteraction.TaskRemainingChunk do
     field(:until, :utc_datetime)
     field(:done_or_not, :boolean)
     belongs_to(:task_status, TaskStatus)
+
+    timestamps()
   end
 
   def changeset(remaining_chunk, params) do
