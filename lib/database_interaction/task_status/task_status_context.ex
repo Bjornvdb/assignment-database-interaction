@@ -21,8 +21,8 @@ defmodule DatabaseInteraction.TaskStatusContext do
     |> Multi.insert_all(:task_remaining_chunks, TaskRemainingChunk, fn %{task_status: ts} ->
       Enum.map(chunks, fn chunk ->
         Map.put(chunk, :task_status_id, ts.id)
-        |> Map.put(:inserted_at, NaiveDateTime.utc_now())
-        |> Map.put(:updated_at, NaiveDateTime.utc_now())
+        |> Map.put(:inserted_at, NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second))
+        |> Map.put(:updated_at, NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second))
       end)
     end)
     |> Repo.get_repo().transaction()
