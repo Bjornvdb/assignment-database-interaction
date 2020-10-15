@@ -19,7 +19,11 @@ defmodule DatabaseInteraction.TaskStatusContext do
       TaskStatus.changeset(%TaskStatus{}, task_attrs, currency_pair)
     )
     |> Multi.insert_all(:task_remaining_chunks, TaskRemainingChunk, fn %{task_status: ts} ->
-      Enum.map(chunks, fn chunk -> Map.put(chunk, :task_status_id, ts.id) end)
+      Enum.map(chunks, fn chunk ->
+        Map.put(chunk, :task_status_id, ts.id)
+        |> Map.put(:inserted_at, NaiveDateTime.utc_now())
+        |> Map.put(:updated_at, NaiveDateTime.utc_now())
+      end)
     end)
     |> Repo.get_repo().transaction()
   end
