@@ -18,4 +18,8 @@ defmodule DatabaseInteraction.CurrencyPairContext do
   def delete_currency_pair(%CurrencyPair{} = cp) do
     DatabaseInteraction.Repo.get_repo().delete(cp)
   end
+
+  def load_association(%CurrencyPair{} = pair, list_of_options) when is_list(list_of_options) do
+    DatabaseInteraction.Repo.get_repo().preload(pair, list_of_options)
+  end
 end

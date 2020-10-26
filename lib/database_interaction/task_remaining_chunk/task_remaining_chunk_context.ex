@@ -1,4 +1,5 @@
 defmodule DatabaseInteraction.TaskRemainingChunkContext do
+  import Ecto.Query
   # alias DatabaseInteraction.TaskRemainingChunk
   # alias DatabaseInteraction.TaskStatus
   # alias DatabaseInteraction.Repo
@@ -10,4 +11,20 @@ defmodule DatabaseInteraction.TaskRemainingChunkContext do
   # end
 
   # def list_task_status, do: Repo.get_repo().all(TaskRemainingChunk)
+
+  def load_association(%DatabaseInteraction.TaskRemainingChunk{} = pair, list_of_options)
+      when is_list(list_of_options) do
+    DatabaseInteraction.Repo.get_repo().preload(pair, list_of_options)
+  end
+
+  def get_all_unfinished_remaining_tasks_for_pair(%DatabaseInteraction.CurrencyPair{} = pair) do
+    from(trc in DatabaseInteraction.TaskRemainingChunk,
+      join: ts in DatabaseInteraction.TaskStatus,
+      join: cp in DatabaseInteraction.CurrencyPair,
+      on: cp.id == ts.currency_pair_id,
+      on: ts.id == trc.task_status_id,
+      where: cp.id == ^pair.id
+    )
+    |> DatabaseInteraction.Repo.get_repo().all()
+  end
 end
