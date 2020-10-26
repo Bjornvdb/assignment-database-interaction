@@ -20,6 +20,7 @@ defmodule DatabaseInteraction.TaskRemainingChunkContext do
   def get_all_unfinished_remaining_tasks() do
     CurrencyPairContext.list_currency_pairs()
     |> Enum.map(&TaskRemainingChunkContext.get_all_unfinished_remaining_tasks_for_pair/1)
+    |> List.flatten()
   end
 
   def get_all_unfinished_remaining_tasks_for_pair(%DatabaseInteraction.CurrencyPair{} = pair) do
