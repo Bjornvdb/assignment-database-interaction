@@ -4,6 +4,10 @@ defmodule DatabaseInteraction.TaskStatusContext do
   alias DatabaseInteraction.Repo
   alias Ecto.Multi
 
+  def get_by_id!(id) do
+    Repo.get_repo().get(TaskStatus, id)
+  end
+
   def create_task_status(attrs, %CurrencyPair{} = currency_pair) do
     %TaskStatus{}
     |> TaskStatus.changeset(attrs, currency_pair)
