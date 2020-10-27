@@ -49,8 +49,16 @@ defmodule DatabaseInteraction.TaskRemainingChunkContext do
       tr
     end)
     |> Ecto.Multi.insert_all(:add_halved_chunks, TaskRemainingChunk, fn _ ->
-      first_half = %{from: from, until: DateTime.from_unix!(new_t1), task_status_id: task_id.id}
-      second_half = %{until: until, from: DateTime.from_unix!(new_t2), task_status_id: task_id.id}
+      base = %{
+        inserted_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
+        updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
+        task_status_id: task_id.id,
+        from: nil,
+        until: nil
+      }
+
+      first_half = %{base | from: from, until: DateTime.from_unix!(new_t1)}
+      second_half = %{base | until: until, from: DateTime.from_unix!(new_t2)}
       [first_half, second_half]
     end)
     |> DatabaseInteraction.Repo.get_repo().transaction()
