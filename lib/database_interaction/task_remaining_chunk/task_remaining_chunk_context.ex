@@ -32,8 +32,10 @@ defmodule DatabaseInteraction.TaskRemainingChunkContext do
   def halve_chunk(%TaskStatus{} = task_id, from_unix, until_unix) do
     tdiff = until_unix - from_unix
 
-    new_t1 = DateTime.from_unix!(div(tdiff, 2) + from_unix)
-    new_t2 = DateTime.from_unix!(new_t1 + 1)
+    new_t1_unix = div(tdiff, 2) + from_unix
+    new_t2_unix = new_t1_unix + 1
+    new_t1 = DateTime.from_unix!(new_t1_unix)
+    new_t2 = DateTime.from_unix!(new_t2_unix)
 
     from = DateTime.from_unix!(from_unix)
     until = DateTime.from_unix!(until_unix)
