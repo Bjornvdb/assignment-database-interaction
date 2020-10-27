@@ -65,7 +65,9 @@ defmodule DatabaseInteraction.TaskRemainingChunkContext do
     end)
     |> DatabaseInteraction.Repo.get_repo().transaction()
 
-    {get_chunk_by(task_id, from, new_t1), get_chunk_by(task_id, new_t2, until)}
+    first_half = get_chunk_by(task_id, from_unix, new_t1_unix)
+    second_half = get_chunk_by(task_id, new_t2_unix, until_unix)
+    {first_half, second_half}
   end
 
   def halve_chunk(task_id, from_unix, until_unix)
