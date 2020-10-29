@@ -1,27 +1,11 @@
 defmodule DatabaseInteraction.TaskRemainingChunkContext do
   import Ecto.Query
   alias DatabaseInteraction.{CurrencyPairContext, TaskRemainingChunk, TaskStatus}
-  # alias DatabaseInteraction.TaskStatus
-  # alias DatabaseInteraction.Repo
-
-  # def create_task_remaining_chunk(attrs, %TaskStatus{} = task) do
-  #   %TaskRemainingChunk{}
-  #   |> TaskRemainingChunk.changeset(attrs, task)
-  #   |> Repo.get_repo().insert()
-  # end
-
-  # def list_task_status, do: Repo.get_repo().all(TaskRemainingChunk)
 
   def get_chunk_by(%TaskStatus{} = task, from_unix, until_unix) do
     from = DateTime.from_unix!(from_unix)
     until = DateTime.from_unix!(until_unix)
 
-    # from(trc in DatabaseInteraction.TaskRemainingChunk,
-    #   where: trc.from == ^from,
-    #   where: trc.until == ^until,
-    #   where: trc.task_status_id == ^task
-    # )
-    # |> DatabaseInteraction.Repo.get_repo().get_by(TaskRemainingChunk, [from: from, until: until, task_status_id: task.id])
     DatabaseInteraction.Repo.get_repo().get_by(TaskRemainingChunk,
       from: from,
       until: until,
@@ -33,6 +17,14 @@ defmodule DatabaseInteraction.TaskRemainingChunkContext do
     task_id
     |> DatabaseInteraction.TaskStatusContext.get_by_id!()
     |> get_chunk_by(from_unix, until_unix)
+  end
+
+  def changeset_mark_as_done(%TaskRemainingChunk{} = trc) do
+    TaskRemainingChunk.changeset(trc, %{done_or_not: true})
+  end
+
+  def mark_as_done(%TaskRemainingChunk{} = trc) do
+    changeset_mark_as_done(trc) |> DatabaseInteraction.Repo.get_repo().update()
   end
 
   def halve_chunk(%TaskStatus{} = task_id, from_unix, until_unix) do
