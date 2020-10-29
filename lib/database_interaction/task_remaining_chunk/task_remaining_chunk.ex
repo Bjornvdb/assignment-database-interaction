@@ -15,7 +15,7 @@ defmodule DatabaseInteraction.TaskRemainingChunk do
 
   def changeset(remaining_chunk, params) do
     remaining_chunk
-    |> cast(params, [:from, :until, :task_status_id])
+    |> cast(params, [:from, :done_or_not, :until, :task_status_id])
     |> cast_assoc(:task_status)
     |> unique_constraint(:from, name: :unique_task_chunk_start)
     |> unique_constraint(:until, name: :unique_task_chunk_until)
@@ -23,7 +23,7 @@ defmodule DatabaseInteraction.TaskRemainingChunk do
 
   def changeset(remaining_chunk, params, %TaskStatus{} = task_status) do
     remaining_chunk
-    |> cast(params, [:from, :until])
+    |> cast(params, [:from, :done_or_not, :until])
     |> put_assoc(:task_status, task_status)
     |> unique_constraint(:from, name: :unique_task_chunk_start)
     |> unique_constraint(:until, name: :unique_task_chunk_until)
