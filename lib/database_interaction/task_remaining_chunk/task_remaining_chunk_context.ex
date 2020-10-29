@@ -29,6 +29,12 @@ defmodule DatabaseInteraction.TaskRemainingChunkContext do
     )
   end
 
+  def get_chunk_by(task_id, from_unix, until_unix) do
+    task_id
+    |> DatabaseInteraction.TaskStatusContext.get_by_id!()
+    |> get_chunk_by(from_unix, until_unix)
+  end
+
   def halve_chunk(%TaskStatus{} = task_id, from_unix, until_unix) do
     tdiff = until_unix - from_unix
 
