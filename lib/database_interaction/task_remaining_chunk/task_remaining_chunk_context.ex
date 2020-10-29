@@ -95,7 +95,8 @@ defmodule DatabaseInteraction.TaskRemainingChunkContext do
       join: cp in DatabaseInteraction.CurrencyPair,
       on: cp.id == ts.currency_pair_id,
       on: ts.id == trc.task_status_id,
-      where: cp.id == ^pair.id
+      where: cp.id == ^pair.id,
+      where: cp.done_or_not == false
     )
     |> DatabaseInteraction.Repo.get_repo().all()
   end
