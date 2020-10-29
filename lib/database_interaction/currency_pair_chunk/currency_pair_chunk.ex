@@ -15,5 +15,6 @@ defmodule DatabaseInteraction.CurrencyPairChunk do
     user
     |> cast(params, [:from, :until])
     |> put_assoc(:currency_pair, cp)
+    |> unique_constraint(:from, name: :unique_chunk)
   end
 end
