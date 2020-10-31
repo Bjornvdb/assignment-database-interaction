@@ -14,8 +14,43 @@ defmodule DatabaseInteraction.CurrencyPairChunkContext do
     |> DatabaseInteraction.Repo.get_repo().insert()
   end
 
-  def create_chunk_with_entries(_attrs \\ %{}, %CurrencyPair{} = _cp, _list_of_entries) do
-    raise "TODO"
+  def create_chunk_with_entries(
+        _attrs \\ %{},
+        %DatabaseInteraction.TaskRemainingChunk{} = trc,
+        list_of_entries
+      ) do
+    loaded_trc =
+      trc
+      |> DatabaseInteraction.TaskRemainingChunkContext.load_association(
+        task_status: [:currency_pair]
+      )
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(
+      :mark_as_done,
+      DatabaseInteraction.TaskRemainingChunkContext.changeset_mark_as_done(loaded_trc)
+    )
+    |> Ecto.Multi.run(:currency_pair_chunk, fn _, _ ->
+      DatabaseInteraction.CurrencyPairChunkContext.create_chunk(
+        %{from: loaded_trc.from, until: loaded_trc.until},
+        loaded_trc.task_status.currency_pair,
+        :i_am_aware_that_i_should_not_use_this_directly
+      )
+    end)
+    |> Ecto.Multi.insert_all(:add_entries, CurrencyPairEntry, fn %{currency_pair_chunk: cpc} ->
+      Enum.map(list_of_entries, fn %{} = entry ->
+        %{
+          trade_id: entry.trade_id,
+          date: DateTime.from_unix!(entry.date),
+          type: entry.type |> Atom.to_string() |> String.downcase(),
+          rate: entry.rate,
+          amount: entry.amount,
+          total: entry.total,
+          currency_pair_chunk_id: cpc.id
+        }
+      end)
+    end)
+    |> DatabaseInteraction.Repo.get_repo().transaction()
   end
 
   def delete_chunk(%CurrencyPairChunk{} = cpc) do
