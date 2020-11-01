@@ -2,6 +2,10 @@ defmodule DatabaseInteraction.CurrencyPairChunkContext do
   alias DatabaseInteraction.{CurrencyPair, CurrencyPairChunk}
   import Ecto.Query, only: [from: 2]
 
+  alias DatabaseInteraction.Repo
+  alias DatabaseInteraction.{TaskRemainingChunk, TaskRemainingChunkContext}
+  alias DatabaseInteraction.CurrencyPairEntry
+
   def list_all_chunks, do: DatabaseInteraction.Repo.get_repo().all(CurrencyPairChunk)
 
   def create_chunk(
@@ -11,27 +15,19 @@ defmodule DatabaseInteraction.CurrencyPairChunkContext do
       ) do
     %CurrencyPairChunk{}
     |> CurrencyPairChunk.changeset(attrs, cp)
-    |> DatabaseInteraction.Repo.get_repo().insert()
+    |> Repo.get_repo().insert()
   end
 
-  def create_chunk_with_entries(
-        _attrs \\ %{},
-        %DatabaseInteraction.TaskRemainingChunk{} = trc,
-        list_of_entries
-      ) do
-    loaded_trc =
-      trc
-      |> DatabaseInteraction.TaskRemainingChunkContext.load_association(
-        task_status: [:currency_pair]
-      )
+  def create_chunk_with_entries(%TaskRemainingChunk{} = trc, list_of_entries) do
+    loaded_trc = TaskRemainingChunkContext.load_association(trc, task_status: [:currency_pair])
 
     Ecto.Multi.new()
     |> Ecto.Multi.update(
       :mark_as_done,
-      DatabaseInteraction.TaskRemainingChunkContext.changeset_mark_as_done(loaded_trc)
+      TaskRemainingChunkContext.changeset_mark_as_done(loaded_trc)
     )
     |> Ecto.Multi.run(:currency_pair_chunk, fn _, _ ->
-      DatabaseInteraction.CurrencyPairChunkContext.create_chunk(
+      create_chunk(
         %{from: loaded_trc.from, until: loaded_trc.until},
         loaded_trc.task_status.currency_pair,
         :i_am_aware_that_i_should_not_use_this_directly
@@ -50,7 +46,7 @@ defmodule DatabaseInteraction.CurrencyPairChunkContext do
         }
       end)
     end)
-    |> DatabaseInteraction.Repo.get_repo().transaction()
+    |> Repo.get_repo().transaction()
   end
 
   def delete_chunk(%CurrencyPairChunk{} = cpc) do
