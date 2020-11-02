@@ -15,9 +15,10 @@ defmodule DatabaseInteraction.TaskStatus do
 
   def changeset(user, params \\ %{}, %CurrencyPair{} = currency_pair) do
     user
-    |> cast(params, [:from, :until])
+    |> cast(params, [:from, :until, :uuid])
     |> put_assoc(:currency_pair, currency_pair)
     |> unique_constraint(:from, name: :unique_task_start)
     |> unique_constraint(:until, name: :unique_task_until)
+    |> unique_constraint(:uuid)
   end
 end

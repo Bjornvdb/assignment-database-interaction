@@ -11,5 +11,6 @@ defmodule DatabaseInteraction.Repo.Migrations.AddTaskStatus do
 
     create(unique_index(:task_status, [:from, :currency_pair_id], name: :unique_task_start))
     create(unique_index(:task_status, [:until, :currency_pair_id], name: :unique_task_until))
+    create(unique_index(:task_status, :uuid))
   end
 end
