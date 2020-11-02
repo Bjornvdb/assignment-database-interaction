@@ -16,6 +16,23 @@ defmodule DatabaseInteraction.TaskStatusContext do
 
   def list_task_status, do: Repo.get_repo().all(TaskStatus)
 
+  def task_complete?(%TaskStatus{} = task) do
+    loaded_task = load_association(task, [:task_remaining_chunks])
+    Enum.all?(loaded_task.task_remaining_chunks, & &1.done_or_not)
+  end
+
+  def task_status_complete?(task_id) do
+    task_id |> get_by_id! |> task_complete?()
+  end
+
+  def delete_task_status(%TaskStatus{} = task) do
+    Repo.get_repo().delete(task)
+  end
+
+  def delete_task_status(task_id) do
+    task_id |> get_by_id! |> delete_task_status()
+  end
+
   def create_full_task(task_attrs, %CurrencyPair{} = currency_pair, chunks) do
     Multi.new()
     |> Multi.insert(
