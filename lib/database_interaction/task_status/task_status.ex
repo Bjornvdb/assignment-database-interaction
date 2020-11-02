@@ -8,6 +8,7 @@ defmodule DatabaseInteraction.TaskStatus do
   schema "task_status" do
     field(:from, :utc_datetime)
     field(:until, :utc_datetime)
+    field(:uuid, :string)
     belongs_to(:currency_pair, CurrencyPair)
     has_many(:task_remaining_chunks, TaskRemainingChunk)
   end

@@ -5,6 +5,7 @@ defmodule DatabaseInteraction.Repo.Migrations.AddTaskStatus do
     create table("task_status") do
       add(:from, :utc_datetime, null: false)
       add(:until, :utc_datetime, null: false)
+      add(:uuid, :string, null: false)
       add(:currency_pair_id, references(:currency_pairs), null: false)
     end
 

@@ -6,13 +6,11 @@ defmodule DatabaseInteraction.CurrencyPairChunkContext do
   alias DatabaseInteraction.{TaskRemainingChunk, TaskRemainingChunkContext}
   alias DatabaseInteraction.CurrencyPairEntry
 
+  @awareness_atom :i_am_aware_that_i_should_not_use_this_directly
+
   def list_all_chunks, do: DatabaseInteraction.Repo.get_repo().all(CurrencyPairChunk)
 
-  def create_chunk(
-        attrs \\ %{},
-        %CurrencyPair{} = cp,
-        :i_am_aware_that_i_should_not_use_this_directly
-      ) do
+  def create_chunk(attrs \\ %{}, %CurrencyPair{} = cp, @awareness_atom) do
     %CurrencyPairChunk{}
     |> CurrencyPairChunk.changeset(attrs, cp)
     |> Repo.get_repo().insert()
@@ -27,11 +25,8 @@ defmodule DatabaseInteraction.CurrencyPairChunkContext do
       TaskRemainingChunkContext.changeset_mark_as_done(loaded_trc)
     )
     |> Ecto.Multi.run(:currency_pair_chunk, fn _, _ ->
-      create_chunk(
-        %{from: loaded_trc.from, until: loaded_trc.until},
-        loaded_trc.task_status.currency_pair,
-        :i_am_aware_that_i_should_not_use_this_directly
-      )
+      %{from: loaded_trc.from, until: loaded_trc.until}
+      |> create_chunk(loaded_trc.task_status.currency_pair, @awareness_atom)
     end)
     |> Ecto.Multi.insert_all(:add_entries, CurrencyPairEntry, fn %{currency_pair_chunk: cpc} ->
       Enum.map(list_of_entries, fn %{} = entry ->
