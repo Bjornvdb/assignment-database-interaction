@@ -17,8 +17,8 @@ defmodule DatabaseInteraction.TaskStatusContext do
   def list_task_status, do: Repo.get_repo().all(TaskStatus)
 
   def task_complete?(%TaskStatus{} = task) do
-    loaded_task = load_association(task, [:task_remaining_chunks])
-    Enum.all?(loaded_task.task_remaining_chunks, & &1.done_or_not)
+    loaded_task = load_association(task, [:task_remaining_chunks, :currency_pair])
+    {Enum.all?(loaded_task.task_remaining_chunks, & &1.done_or_not), loaded_task}
   end
 
   def task_status_complete?(task_id) do
