@@ -21,11 +21,11 @@ defmodule DatabaseInteraction.TaskStatusContext do
 
     case Enum.all?(loaded_task.task_remaining_chunks, & &1.done_or_not) do
       true ->
-        {true, task}
+        {true, loaded_task}
 
       false ->
         details =
-          Enum.reduce(task.task_remaining_chunks, %{n: 0, done: 0}, fn
+          Enum.reduce(loaded_task.task_remaining_chunks, %{n: 0, done: 0}, fn
             %TaskRemainingChunk{done_or_not: true}, a -> %{a | n: a.n + 1, done: a.done + 1}
             %TaskRemainingChunk{done_or_not: false}, a -> %{a | n: a.n + 1}
           end)
