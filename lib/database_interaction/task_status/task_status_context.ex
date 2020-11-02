@@ -18,7 +18,20 @@ defmodule DatabaseInteraction.TaskStatusContext do
 
   def task_complete?(%TaskStatus{} = task) do
     loaded_task = load_association(task, [:task_remaining_chunks, :currency_pair])
-    {Enum.all?(loaded_task.task_remaining_chunks, & &1.done_or_not), loaded_task}
+
+    case Enum.all?(loaded_task.task_remaining_chunks, & &1.done_or_not) do
+      true ->
+        {true, task}
+
+      false ->
+        details =
+          Enum.reduce(task.task_remaining_chunks, %{n: 0, done: 0}, fn
+            %TaskRemainingChunk{done_or_not: true}, a -> %{a | n: a.n + 1, done: a.done + 1}
+            %TaskRemainingChunk{done_or_not: false}, a -> %{a | n: a.n + 1}
+          end)
+
+        {false, loaded_task, details}
+    end
   end
 
   def task_status_complete?(task_id) do
