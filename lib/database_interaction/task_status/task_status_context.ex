@@ -3,6 +3,7 @@ defmodule DatabaseInteraction.TaskStatusContext do
   alias DatabaseInteraction.CurrencyPair
   alias DatabaseInteraction.Repo
   alias Ecto.Multi
+  import Ecto.Query, only: [from: 2]
 
   def get_by_id!(id) do
     Repo.get_repo().get(TaskStatus, id)
@@ -40,7 +41,10 @@ defmodule DatabaseInteraction.TaskStatusContext do
 
   def delete_task_status(%TaskStatus{} = task) do
     loaded_task = load_association(task, [:task_remaining_chunks])
-    Repo.get_repo().delete_all(loaded_task.task_remaining_chunks)
+
+    from(tr in TaskRemainingChunk, where: tr.task_status_is == ^loaded_task)
+    |> Repo.get_repo().delete_all()
+
     Repo.get_repo().delete(loaded_task)
   end
 
