@@ -35,7 +35,7 @@ defmodule DatabaseInteraction.TaskStatusContext do
   end
 
   def task_status_complete?(task_id) do
-    task_id |> get_by_id! |> task_complete?()
+    task_id |> get_by_id! |> task_status_complete?()
   end
 
   def delete_task_status(%TaskStatus{} = task) do
