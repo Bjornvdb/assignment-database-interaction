@@ -40,12 +40,12 @@ defmodule DatabaseInteraction.TaskStatusContext do
   end
 
   def delete_task_status(%TaskStatus{} = task) do
-    loaded_task = load_association(task, [:task_remaining_chunks])
-
-    from(tr in TaskRemainingChunk, where: tr.task_status_id == ^loaded_task)
+    from(tr in TaskRemainingChunk, where: tr.task_status_id == ^task.id)
     |> Repo.get_repo().delete_all()
 
-    Repo.get_repo().delete(loaded_task)
+    # loaded_task = load_association(task, [:task_remaining_chunks])
+
+    Repo.get_repo().delete(task)
   end
 
   def delete_task_status(task_id) do
