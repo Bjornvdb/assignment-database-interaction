@@ -5,6 +5,7 @@ defmodule DatabaseInteraction.CurrencyPair do
   schema "currency_pairs" do
     field(:currency_pair, :string)
     has_many(:currency_pair_chunks, DatabaseInteraction.CurrencyPairChunk)
+    has_many(:task_statuses, DatabaseInteraction.TaskStatus)
   end
 
   def changeset(user, params \\ %{}) do
