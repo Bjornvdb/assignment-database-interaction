@@ -76,3 +76,46 @@ iex> DatabaseInteraction.CurrencyPairChunkContext.generate_missing_chunks(from, 
   {~U[2020-06-06 00:00:01Z], ~U[2020-06-07 23:59:59Z]}
 ]
 ```
+
+## Selecting chunks between a timeframe
+
+```elixir
+iex> pair = DatabaseInteraction.CurrencyPairContext.get_pair_by_name("BTC_ETH")
+...
+iex> from = DateTime.from_unix!(1590969599)
+...
+iex> until = DateTime.from_unix!(1591747200)
+...
+iex> DatabaseInteraction.CurrencyPairChunkContext.select_chunks( from, until, pair)
+
+13:34:43.300 [debug] QUERY OK source="currency_pair_chunks" db=1.4ms idle=1421.1ms
+SELECT c0.`id`, c0.`from`, c0.`until`, c0.`currency_pair_id` FROM `currency_pair_chunks` AS c0 WHERE (((c0.`currency_pair_id` = ?) AND (((c0.`from` < ?) AND (c0.`until` >= ?)) OR (c0.`from` >= ?))) AND (((c0.`until` > ?) AND (c0.`from` <= ?)) OR (c0.`until` <= ?))) ORDER BY c0.`from` [1, ~U[2020-05-31 23:59:59Z], ~U[2020-05-31 23:59:59Z], ~U[2020-05-31 23:59:59Z], ~U[2020-06-10 00:00:00Z], ~U[2020-06-10 00:00:00Z], ~U[2020-06-10 00:00:00Z]]
+[
+  %DatabaseInteraction.CurrencyPairChunk{ ... },
+  %DatabaseInteraction.CurrencyPairChunk{ ... },
+  %DatabaseInteraction.CurrencyPairChunk{ ... },
+  ...
+]
+```
+
+## Create chunk w/ entries
+
+The idea is that you convert a `TaskRemainingChunk` into an "actual" chunk with data. That's why, in order to create this (with the entries), you have to pass in a `TaskRemainingChunk` struct with entries. The entries are a list of `AssignmentMessages.ClonedEntry` structs.
+
+```elixir
+iex> task_that_has_been_cloned = %DatabaseInteraction.TaskRemainingChunk{ ... }
+...
+iex> some_fake_entries = [%AssignmentMessages.ClonedEntry{ ... }, %AssignmentMessages.ClonedEntry{ ... }, %AssignmentMessages.ClonedEntry{ ... }, ... ]
+...
+iex> CurrencyPairChunkContext.create_chunk_with_entries(task_that_has_been_cloned, some_fake_entries)
+{:ok, %{ ...} = a lot of stuff that you don't need worry about}
+```
+
+## Functions summary
+
+* list_all_chunks()
+* create_chunk(attrs \\ %{}, %CurrencyPair{} = cp, @awareness_atom) => __don't use this directly.__
+* create_chunk_with_entries(%TaskRemainingChunk{} = trc, list_of_entries)
+* delete_chunk(%CurrencyPairChunk{} = cpc)
+* select_chunks(%DateTime{} = from, %DateTime{} = until, %CurrencyPair{} = cp)
+* generate_missing_chunks(%DateTime{} = from, %DateTime{} = until, %CurrencyPair{} = cp)
