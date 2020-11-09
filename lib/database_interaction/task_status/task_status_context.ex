@@ -9,13 +9,30 @@ defmodule DatabaseInteraction.TaskStatusContext do
     Repo.get_repo().get(TaskStatus, id)
   end
 
-  def create_task_status(attrs, %CurrencyPair{} = currency_pair) do
-    %TaskStatus{}
-    |> TaskStatus.changeset(attrs, currency_pair)
-    |> Repo.get_repo().insert()
-  end
-
   def list_task_status, do: Repo.get_repo().all(TaskStatus)
+
+  def generate_chunk_windows(from_in_unix, until_in_unix, window_size_in_s) do
+    from_unix = from_in_unix
+    until_unix = until_in_unix
+
+    window = window_size_in_s
+    chunks = Kernel.ceil((until_unix - from_unix) / window) - 1
+
+    Enum.reduce_while(0..chunks, [], fn n, acc ->
+      new_from = from_unix + n * window
+      new_until = from_unix + (n + 1) * window - 1
+
+      case new_until >= until_unix do
+        true ->
+          entry = %{from: DateTime.from_unix!(new_from), until: DateTime.from_unix!(until_unix)}
+          {:halt, [entry | acc]}
+
+        false ->
+          entry = %{from: DateTime.from_unix!(new_from), until: DateTime.from_unix!(new_until)}
+          {:cont, [entry | acc]}
+      end
+    end)
+  end
 
   def task_status_complete?(%TaskStatus{} = task) do
     loaded_task = load_association(task, [:task_remaining_chunks, :currency_pair])
