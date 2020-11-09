@@ -34,8 +34,80 @@ iex(3)> DatabaseInteraction.TaskStatusContext.task_status_complete? 1
 {true, %DatabaseInteraction.TaskStatus{ ... }}
 ```
 
+## Generate chunk windows
+
+Splits up a single huge window up into smaller window.
+
+```elixir
+iex> DatabaseInteraction.TaskStatusContext.generate_chunk_windows(from_in_unix, until_in_unix, window_size_in_s)
+[
+  %{from: ~U[2020-06-07 00:00:00Z], until: ~U[2020-06-07 03:19:59Z]},
+  %{from: ~U[2020-06-06 18:00:00Z], until: ~U[2020-06-06 23:59:59Z]},
+  %{from: ~U[2020-06-06 12:00:00Z], until: ~U[2020-06-06 17:59:59Z]},
+  %{from: ~U[2020-06-06 06:00:00Z], until: ~U[2020-06-06 11:59:59Z]},
+  %{from: ~U[2020-06-06 00:00:00Z], until: ~U[2020-06-06 05:59:59Z]},
+  ...
+]
+```
+
 ## Creating a task with its remaining chunks
 
+```elixir
+# First displaying some variables, then output function.
+iex> task_attrs
+%{
+  from: ~U[2020-06-01 00:00:00Z],
+  until: ~U[2020-06-07 03:19:59Z],
+  uuid: "e6274325-1efe-4c09-b1d6-da870ff21242"
+}
+iex> pair
+%DatabaseInteraction.CurrencyPair{
+  __meta__: #Ecto.Schema.Metadata<:loaded, "currency_pairs">,
+  currency_pair: "BTC_ETH",
+  currency_pair_chunks: #Ecto.Association.NotLoaded<association :currency_pair_chunks is not loaded>,
+  id: 1,
+  task_statuses: #Ecto.Association.NotLoaded<association :task_statuses is not loaded>
+}
+iex> entries
+[
+  %{from: ~U[2020-06-07 00:00:00Z], until: ~U[2020-06-07 03:19:59Z]},
+  %{from: ~U[2020-06-06 18:00:00Z], until: ~U[2020-06-06 23:59:59Z]},
+  %{from: ~U[2020-06-06 12:00:00Z], until: ~U[2020-06-06 17:59:59Z]},
+  ...
+]
+# pattern matching on result here to show the variables later on.
+iex> {:ok, result} = TaskStatusContext.create_full_task(task_attrs, pair, entries)
+{:ok, ...}
+iex> result
+%{
+  task_remaining_chunks: {25, nil},
+  task_status: %DatabaseInteraction.TaskStatus{
+    __meta__: #Ecto.Schema.Metadata<:loaded, "task_status">,
+    currency_pair: %DatabaseInteraction.CurrencyPair{
+      __meta__: #Ecto.Schema.Metadata<:loaded, "currency_pairs">,
+      currency_pair: "USDT_BTC",
+      currency_pair_chunks: #Ecto.Association.NotLoaded<association :currency_pair_chunks is not loaded>,
+      id: 2,
+      task_statuses: #Ecto.Association.NotLoaded<association :task_statuses is not loaded>
+    },
+    currency_pair_id: 2,
+    from: ~U[2020-06-01 00:00:00Z],
+    id: 3,
+    task_remaining_chunks: #Ecto.Association.NotLoaded<association :task_remaining_chunks is not loaded>,
+    until: ~U[2020-06-07 03:19:59Z],
+    uuid: "29051d51-5532-4a73-87d8-bea9fb61225a"
+  }
+}
+```
+
+## Load associations
+
+You can load the associations towards a currency pairs and their remaining chunks.
+
+```elixir
+iex> TaskStatusContext.load_association([:task_remaining_chunks, :currency_pair])
+%TaskStatus{ ... all associations loaded ...}
+```
 
 ## Function summary
 
