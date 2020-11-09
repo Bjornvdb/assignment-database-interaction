@@ -20,7 +20,6 @@ Documented [here](./basic_docs/usage/currency_pair_entry_ops.md).
 
 ### __Task status__ operations
 
-TODO...
 Documented [here](./basic_docs/usage/task_status_ops.md).
 
 ### Task __remaining chunk__ operations
