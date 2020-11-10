@@ -24,5 +24,4 @@ Documented [here](./basic_docs/usage/task_status_ops.md).
 
 ### Task __remaining chunk__ operations
 
-TODO...
-<!-- Documented [here](./basic_docs/usage/currency_pair_entry_ops.md). -->
+Documented [here](./basic_docs/usage/task_remaining_chunk_ops.md).
