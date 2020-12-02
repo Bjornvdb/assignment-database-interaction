@@ -72,4 +72,4 @@ This will create the necessary migrations. Try it out with:
 mix ecto.drop && mix ecto.create && mix ecto.migrate --log-sql
 ```
 
-Your tables should exist!
+Your tables should exist! Now start your repository module under your application supervisor (probably `application.ex`).
