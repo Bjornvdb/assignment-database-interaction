@@ -1,6 +1,10 @@
 defmodule DatabaseInteraction.TaskRemainingChunkContext do
   import Ecto.Query
   alias DatabaseInteraction.{CurrencyPairContext, TaskRemainingChunk, TaskStatus}
+  
+  def get_by_id!(id) do
+    Repo.get_repo().get(TaskRemainingChunk, id)
+  end
 
   def get_chunk_by(%TaskStatus{} = task, from_unix, until_unix) do
     from = DateTime.from_unix!(from_unix)
